@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroSmart Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <link rel="stylesheet" href="aerosmart_theme.css?v=1.2">
+    <link rel="stylesheet" href="styles.css?v=2.2">
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Audio for alerts -->
+        <audio id="alertSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+            preload="auto"></audio>
+        <!-- Map Background -->
+        <div class="map-background" id="map"></div>
+
+        <!-- Header: Wallet & Weather -->
+        <header
+            style="display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 0 20px; gap: 15px;">
+            <!-- Right: PT Bar (Slimmed) -->
+            <div class="wallet-bar glass-panel" id="walletToggle"
+                style="padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px; background: var(--glass-bg); border: 1px solid var(--glass-border);">
+                <span id="ptBalance"
+                    style="font-weight: 800; color: var(--emerald-green);">3,450</span>
+                <span
+                    style="font-weight: 800; color: var(--emerald-green);">PT</span>
+                <i class="fa-solid fa-circle-info"
+                    style="color: var(--cyan-blue); cursor: pointer; font-size: 14px; margin-right: auto;"></i>
+            </div>
+
+            <!-- Middle: Sleek District Indicator (Restored Glass) -->
+            <div id="districtIcon" class="district-indicator" title="الحي النشط"
+                style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); box-shadow: 0 2px 10px rgba(0,0,0,0.2); white-space: nowrap;">
+                <i class="fa-solid fa-location-dot" style="color: var(--emerald-green);"></i>
+                <span id="activeDistrictText"
+                    style="font-weight: 800; color: var(--emerald-green);">جاري التحديد...</span>
+            </div>
+
+            <!-- Left: Weather & Bell (Swapped & Slimmed) -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <!-- Weather Widget (Sleek Slimmed Version) -->
+                <div class="weather-widget glass-panel" id="weatherWidgetHeader"
+                    style="padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; background: var(--glass-bg); border: 1px solid var(--glass-border); cursor: pointer;">
+                    <i class="fa-solid fa-sun" id="weather-icon" style="color: #F59E0B; font-size: 14px;"></i>
+                    <span id="weather-status" style="font-weight: 800; font-size: 13px; color: var(--text-dark);">28°C</span>
+                </div>
+
+                <!-- Notification Bell (Shrunk to fit) -->
+                <div class="icon-btn-custom glass-panel" id="bellIcon" title="الإشعارات"
+                    style="padding: 6px 10px; border-radius: 18px;">
+                    <i class="fa-solid fa-bell" style="font-size: 14px;"></i>
+                    <div class="bell-dot" id="bellDot" style="display: none;"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dropdown -->
+        <div class="wallet-dropdown glass-panel" id="walletDropdown" style="top: 70px; right: 20px; z-index: 2001;">
+            <div class="transaction">
+                <span class="tx-amount">+5 PT</span>
+                <span>عند اختيار مسار صديق للبيئة .. سيزداد عدادك بمقدار 1PT لكل 5 كيلو متر.</span>
+            </div>
+            <div class="transaction">
+                <span class="tx-amount">+20 PT</span>
+                <span>مكافأة "محسن البصمة الكربونية" لخفض الانبعاثات في منطقتك.</span>
+            </div>
+        </div>
+
+        <!-- Bottom Left Controls -->
+        <div class="bottom-left-controls"
+            style="position: absolute; bottom: 120px; left: 20px; display: flex; flex-direction: column-reverse; gap: 12px; z-index: 1000; align-items: center;">
+            <div class="settings-gear glass-panel" id="settingsGearBtn" title="الإعدادات"
+                onclick="document.getElementById('profileModal').classList.add('active')">
+                <i class="fa-solid fa-gear"></i>
+            </div>
+            <div class="theme-toggle glass-panel" id="themeToggleBtn" title="تغيير المظهر">
+                <i class="fa-solid fa-moon"></i>
+            </div>
+        </div>
+
+        <!-- Redesigned GPS Tracker: Premium Bottom Pill -->
+        <div id="gpsMeter" class="gps-pill glass-panel">
+            <div class="gps-content">
+                <div class="gps-item">
+                    <i class="fa-solid fa-road" style="color: var(--cyan-blue);"></i>
+                    <span id="gpsDistance">0.0</span> <small>كم</small>
+                </div>
+                <div class="gps-sep"></div>
+                <div class="gps-item">
+                    <i class="fa-solid fa-leaf" style="color: var(--emerald-green);"></i>
+                    <span id="gpsTokens">+0</span> <small>PT</small>
+                </div>
+            </div>
+            <div class="gps-progress-track">
+                <div class="gps-progress-fill" id="journeyProgress"></div>
+            </div>
+        </div>
+
+        <!-- AeroNavigator Control (Google Maps Style) -->
+        <div class="navigator-container glass-panel" id="navigatorContainer"
+            style="position: absolute; top: 90px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 480px; padding: 10px 20px; border-radius: 30px; z-index: 1000; box-shadow: 0 8px 32px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-magnifying-glass" style="color: var(--text-light); font-size: 16px;"></i>
+            <input type="text" class="search-input" placeholder="إلى أين تريد الذهاب بنقاء اليوم؟"
+                style="flex: 1; background: transparent; border: none; outline: none; font-family: 'Tajawal', sans-serif; font-size: 15px; color: var(--text-dark); height: 30px;">
+            <div style="width: 1px; height: 20px; background: var(--glass-border); margin: 0 5px;"></div>
+            <div class="icon-btn-custom" id="aeroNavigator" title="تحديد موقعي"
+                style="color: var(--cyan-blue); cursor: pointer; font-size: 18px;">
+                <i class="fa-solid fa-location-arrow"></i>
+            </div>
+        </div>
+
+
+        <!-- Smart Route Popup -->
+        <div class="smart-route-card glass-panel" id="smartRouteCard">
+            <div class="route-text" id="routeTextContent">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #F59E0B; margin-left: 5px;"></i>
+                طريقك المعتاد به نسبة تلوث عالية؛ <b>Aero-Navigator</b> يقترح "المسار الأخضر". هل تريد التحويل؟
+            </div>
+            <div class="route-actions">
+                <button class="btn btn-secondary" onclick="hideRoutePopup()">تجاهل</button>
+                <button class="btn btn-primary" onclick="acceptRoute()">تأكيد التحويل</button>
+            </div>
+        </div>
+
+        <!-- Agent Control Center -->
+        <div class="agent-controls">
+            <!-- AI Robot Avatar (fixed above trophy) with chat bubble -->
+            <div class="ai-assistant-container" id="aiAssistantContainer">
+                <div class="ai-avatar glass-panel">
+                    <i class="fa-solid fa-robot"></i>
+                    <div class="ai-pulse"></div>
+                </div>
+                <div class="ai-chat-bubble" id="aiMessageStrip">
+                    <span id="aiMessageText"></span>
+                </div>
+            </div>
+            <div class="agent-icon glass-panel pulsing" id="trophyBtn" title="تحدي المناطق الخضراء">
+                <i class="fa-solid fa-trophy"
+                    style="color: #F59E0B; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);"></i>
+            </div>
+            <div class="agent-icon glass-panel pulsing cloud-active" id="aeroSentinel"
+                title="Aero-Sentinel - حالة السحابة">
+                <i class="fa-solid fa-satellite-dish"></i>
+            </div>
+            <div class="agent-icon glass-panel" id="aeroVisualizer" title="Aero-Visualizer">
+                <i class="fa-regular fa-eye-slash"></i>
+            </div>
+            <div class="agent-icon glass-panel shield-active" id="aeroShield" title="Industrial Zone Shield">
+                <i class="fa-solid fa-shield-virus"></i>
+            </div>
+        </div>
+
+        <!-- Alert Bubble -->
+        <div class="alert-bubble glass-panel" id="alertBubble">
+            <i class="fa-solid fa-bell" style="color: var(--cyan-blue); margin-left: 5px;"></i>
+            <span id="alertBubbleText">تنبيه: تم رصد تغير في جودة الهواء في منطقتك.</span>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="footer-actions">
+            <button class="emergency-btn" onclick="secureRoute()">
+                <i class="fa-solid fa-shield-halved"></i> تأمين المسار
+            </button>
+            <a href="#" class="community-link"
+                onclick="document.getElementById('leaderboardModal').classList.add('active'); return false;">
+                <i class="fa-solid fa-medal"></i>
+                <span>منطقة الجبيهة تتصدر قائمة النقاء للأسبوع الثالث</span>
+            </a>
+        </div>
+
+        <!-- Modals (Profile, Danger, Leaderboard, PT Info, Start Driving) -->
+        <div class="modal-overlay" id="profileModal">
+            <div class="profile-card glass-panel" style="max-height: 80vh; overflow-y: auto;">
+                <h2>إعدادات ملفك الشخصي</h2>
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="userNameInput" placeholder="ما اسمك؟">
+                </div>
+                <div class="input-group">
+                    <select id="homeLocationInput" class="custom-select">
+                        <option value="" disabled selected>اختر منطقتك السكنية</option>
+                        <option value="حي الصحابة">حي الصحابة</option>
+                        <option value="الجبيهة">الجبيهة</option>
+                        <option value="تلاع العلي">تلاع العلي</option>
+                        <option value="سحاب">سحاب (منطقة صناعية)</option>
+                        <option value="وسط البلد">وسط البلد (احتمال سيول)</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="saveProfile()" style="width: 100%; margin-top: 15px;">حفظ
+                    والبدء</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="dangerAlertModal" style="z-index: 10001;">
+            <div class="profile-card glass-panel" style="text-align: right; border-left: 4px solid #EF4444;">
+                <h2 id="dangerAlertTitle" style="color: #EF4444;"><i class="fa-solid fa-triangle-exclamation"></i> تنبيه
+                    طارئ</h2>
+                <p id="dangerAlertText" style="font-size: 14px; margin-top: 15px; color: var(--text-dark);"></p>
+                <div class="route-actions" style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="hideDangerAlert()">تجاهل</button>
+                    <button class="btn btn-primary" onclick="acceptSafeRoute()"
+                        style="background: var(--emerald-green);">تعديل المسار</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="leaderboardModal" style="z-index: 10002;">
+            <div class="profile-card glass-panel" style="max-height: 80vh; overflow-y: auto; text-align: center;">
+                <i class="fa-solid fa-trophy" style="font-size: 40px; color: #F59E0B;"></i>
+                <h3 style="color: var(--emerald-green); margin-top: 10px;">بطل النقاء: الجبيهة 🏆</h3>
+                
+                <div class="leaderboard-content" style="margin: 20px 0; text-align: right;">
+                    <!-- Content injected via JS -->
+                </div>
+
+                <div class="user-stats-footer" style="padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                        <span>رتبتك الحالية:</span>
+                        <span id="userRankText" style="color: var(--emerald-green);">جاري التحميل...</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                        <span>نقاط منطقتك:</span>
+                        <span id="userPtText">0 PT</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary"
+                    onclick="document.getElementById('leaderboardModal').classList.remove('active')"
+                    style="width: 100%;">رائع!</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="ptInfoModal" style="z-index: 10000;">
+            <div class="profile-card glass-panel" style="text-align: right;">
+                <h2><i class="fa-solid fa-circle-info"></i> ما هو الـ PT؟</h2>
+                <p style="font-size: 14px; margin-top: 15px; color: var(--text-dark);">الـ <b>PT</b> هو مكافأة رقمية
+                    لاختيارك المسارات النظيفة.</p>
+                <button class="btn btn-primary" id="closePtInfoBtn"
+                    style="width: 100%; margin-top: 20px;">حسناً!</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="startDrivingModal">
+            <div class="start-driving-modal glass-panel" style="text-align: center; padding: 30px;">
+                <h2>تأكيد بدء الرحلة</h2>
+                <button id="confirmStartDrivingBtn" class="btn btn-primary" style="margin-top: 20px;">ابدأ الآن (+1
+                    PT)</button>
+            </div>
+        </div>
+
+    </div> <!-- End App Container -->
+
+    <div class="floating-camera glass-panel" id="floatingCamera">
+        <button class="close-cam" onclick="document.getElementById('floatingCamera').style.display='none'; if(window.currentCamStream) { window.currentCamStream.getTracks().forEach(t => t.stop()); }"><i
+                class="fa-solid fa-xmark"></i></button>
+        <video id="cameraFeedVideo" autoplay playsinline muted></video>
+    </div>
+
+    </div> <!-- Close .app-container -->
+
+    <!-- EXTERNAL FLOATING CONTROLS (SIMULATION) - OUTSIDE app container -->
+    <div class="external-sim-controls">
+        <!-- Weather Simulation Group -->
+        <div class="sim-group" id="weatherSimGroup">
+            <div class="sim-options">
+                <button class="sub-sim-btn" onclick="setWeather(0)" title="مشمس" style="color: #F59E0B; border-color: #F59E0B;"><i class="fa-solid fa-sun"></i></button>
+                <button class="sub-sim-btn" onclick="setWeather(1)" title="ممطر" style="color: #e2e8f0; border-color: #e2e8f0;"><i class="fa-solid fa-cloud-showers-heavy"></i></button>
+                <button class="sub-sim-btn" onclick="setWeather(2)" title="رعد" style="color: #a78bfa; border-color: #a78bfa;"><i class="fa-solid fa-bolt"></i></button>
+                <button class="sub-sim-btn" onclick="setWeather(3)" title="غبار" style="color: #d97706; border-color: #d97706;"><i class="fa-solid fa-wind"></i></button>
+            </div>
+            <div class="main-sim-btn weather-sim-btn" onclick="toggleSimGroup('weatherSimGroup')" title="محاكي الطقس">
+                <i class="fa-solid fa-cloud-sun" style="color: #F59E0B;"></i>
+            </div>
+        </div>
+
+        <!-- Violation Simulation Group -->
+        <div class="sim-group" id="violationSimGroup">
+            <div class="sim-options">
+                <button class="sub-sim-btn" onclick="triggerViolation('قطع إشارة حمراء', 'تم رصد قطع إشارة حمراء متعمد!', 30)" title="إشارة حمراء" style="color: #EF4444; border-color: #EF4444;"><i class="fa-solid fa-traffic-light"></i></button>
+                <button class="sub-sim-btn" onclick="triggerViolation('تجاوز خاطئ', 'تنبيه: تجاوز متهور!', 20)" title="تجاوز" style="color: #EF4444; border-color: #EF4444;"><i class="fa-solid fa-car-side"></i></button>
+                <button class="sub-sim-btn" onclick="triggerViolation('سرعة زائدة', 'مخالفة: تجاوز السرعة!', 25)" title="سرعة" style="color: #9CA3AF; border-color: #9CA3AF;"><i class="fa-solid fa-gauge-high"></i></button>
+            </div>
+            <div class="main-sim-btn violation-sim-btn" onclick="toggleSimGroup('violationSimGroup')" title="محاكي القيادة">
+                <i class="fa-solid fa-car-burst" style="color: #EF4444;"></i>
+            </div>
+        </div>
+    </div>
+
+    <script src="aerosmart_core.js?v=2.1"></script>
+</body>
+
+</html>
