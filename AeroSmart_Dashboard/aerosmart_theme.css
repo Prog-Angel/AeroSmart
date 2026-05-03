@@ -216,39 +216,81 @@ header {
   text-align: right;
 }
 
-/* GPS Meter */
-.gps-meter {
+/* GPS Meter Pill — Compact Floating Badge */
+.gps-pill {
   position: absolute;
-  bottom: 320px;
-  right: 20px;
-  padding: 8px 12px;
-  z-index: 100;
+  top: 130px;
+  left: 20px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  z-index: 1000;
+  display: none;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 3px;
-  border-left: 4px solid var(--emerald-green);
   opacity: 0;
-  transform: translateY(-20px);
-  transition: all 0.4s ease;
+  transition: opacity 0.4s ease;
+  cursor: grab;
+  width: 110px;
+  box-sizing: border-box;
+  background: rgba(10, 20, 38, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  color: #e2e8f0;
 }
 
-.gps-meter.active {
+.gps-pill:active {
+  cursor: grabbing;
+}
+
+.gps-pill.active {
   opacity: 1;
-  transform: translateY(0);
 }
 
-.gps-header {
-  font-size: 11px;
-  color: var(--text-light);
+.gps-content {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: space-around;
+  width: 100%;
+  flex-shrink: 0;
 }
 
-.gps-stats {
-  font-size: 16px;
-  font-weight: 700;
+.gps-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 9px;
+  font-weight: 800;
   color: var(--text-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.gps-sep {
+  width: 1px;
+  height: 8px;
+  background: var(--glass-border);
+  flex-shrink: 0;
+}
+
+.gps-progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--glass-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.gps-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--emerald-green);
+  transition: width 0.3s linear;
+  box-shadow: 0 0 5px var(--emerald-glow);
 }
 
 /* Search Bar */

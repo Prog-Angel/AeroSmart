@@ -225,39 +225,95 @@ header {
   text-align: right;
 }
 
-/* GPS Meter */
-.gps-meter {
+/* GPS Meter Pill — Compact Floating Badge */
+.gps-pill {
   position: absolute;
-  bottom: 320px;
-  right: 20px;
-  padding: 8px 12px;
-  z-index: 100;
+  top: 130px;
+  left: 20px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  z-index: 1000;
+  display: none;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 3px;
-  border-left: 4px solid var(--emerald-green);
   opacity: 0;
-  transform: translateY(-20px);
-  transition: all 0.4s ease;
+  transition: opacity 0.4s ease;
+  cursor: grab;
+  width: 110px;
+  box-sizing: border-box;
+  background: rgba(10, 20, 38, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  color: #e2e8f0;
 }
 
-.gps-meter.active {
+.gps-pill:active {
+  cursor: grabbing;
+}
+
+.gps-pill.active {
   opacity: 1;
-  transform: translateY(0);
 }
 
-.gps-header {
-  font-size: 11px;
-  color: var(--text-light);
+.gps-content {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
 }
 
-.gps-stats {
-  font-size: 16px;
-  font-weight: 700;
+.gps-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 800;
   color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.gps-sep {
+  width: 1px;
+  height: 10px;
+  background: var(--glass-border);
+}
+
+.gps-progress-track {
+  width: 70%;
+  height: 2px;
+  background: var(--glass-border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+/* Reward green flash */
+body.reward-active::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 185, 129, 0.18);
+  z-index: 9999;
+  pointer-events: none;
+  animation: rewardFlash 1.5s ease forwards;
+}
+
+@keyframes rewardFlash {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.gps-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--emerald-green);
+  transition: width 0.3s linear;
+  box-shadow: 0 0 5px var(--emerald-glow);
 }
 
 /* Search Bar */
@@ -997,6 +1053,11 @@ body.dark-theme .custom-select option {
   box-shadow: 0 6px 20px rgba(239,68,68,0.25);
 }
 
+.reward-sim-btn {
+  border-color: #10B981;
+  box-shadow: 0 6px 20px rgba(16,185,129,0.25);
+}
+
 .main-sim-btn:hover {
   transform: scale(1.12);
   filter: brightness(1.2);
@@ -1012,72 +1073,13 @@ body.dark-theme .custom-select option {
   box-shadow: 0 0 25px rgba(239,68,68,0.5), 0 6px 20px rgba(0,0,0,0.4);
 }
 
-/* GPS Pill - Fixed Size & Draggable */
-.gps-pill {
-  display: none;
-  position: absolute;
-  bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 260px; /* FIXED WIDTH */
-  padding: 10px 18px;
-  border-radius: 30px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-  z-index: 1000;
-  flex-direction: column;
-  gap: 6px;
-  cursor: grab;
-  transition: opacity 0.4s;
+.reward-sim-btn:hover, .sim-group.active .reward-sim-btn {
+  background: rgba(16,185,129,0.15);
+  box-shadow: 0 0 25px rgba(16,185,129,0.5), 0 6px 20px rgba(0,0,0,0.4);
 }
 
-.gps-pill.active {
-  display: flex;
-  opacity: 1;
-}
 
-.gps-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: white;
-}
 
-.gps-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.gps-item small {
-  font-size: 10px;
-  opacity: 0.7;
-  text-transform: uppercase;
-}
-
-.gps-sep {
-  width: 1px;
-  height: 20px;
-  background: rgba(255,255,255,0.2);
-}
-
-.gps-progress-track {
-  width: 100%;
-  height: 4px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.gps-progress-fill {
-  width: 0%;
-  height: 100%;
-  background: linear-gradient(to right, var(--cyan-blue), var(--emerald-green));
-  transition: width 0.3s ease;
-}
 
 .weather-sim-btn {
   border: 3px solid var(--cyan-blue);

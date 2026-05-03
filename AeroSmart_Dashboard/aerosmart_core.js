@@ -855,21 +855,25 @@ function startDynamicJourney(coords, destination, isGreenRoute) {
 }
 
 function makeDraggable(el) {
+    if (!el) return;
     let isDragging = false;
-    let offsetX, offsetY;
+    let startX, startY, startLeft, startTop;
 
     el.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') return;
         isDragging = true;
-        offsetX = e.clientX - el.getBoundingClientRect().left;
-        offsetY = e.clientY - el.getBoundingClientRect().top;
+        startX    = e.clientX;
+        startY    = e.clientY;
+        startLeft = el.offsetLeft;
+        startTop  = el.offsetTop;
+        el.style.transition = 'opacity 0.4s ease';
+        e.preventDefault();
     });
 
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        el.style.left = (e.clientX - offsetX) + 'px';
-        el.style.top = (e.clientY - offsetY) + 'px';
-        el.style.bottom = 'auto';
-        el.style.right = 'auto';
+        el.style.left = (startLeft + e.clientX - startX) + 'px';
+        el.style.top  = (startTop  + e.clientY - startY) + 'px';
     });
 
     document.addEventListener('mouseup', () => {
@@ -877,19 +881,10 @@ function makeDraggable(el) {
     });
 }
 
-// Apply draggability and Initial Positioning
+// Apply draggability on load
 document.addEventListener('DOMContentLoaded', () => {
     const gpsMeterEl = document.getElementById('gpsMeter');
-    const navigatorContainer = document.getElementById('navigatorContainer');
-    
-    if (gpsMeterEl && navigatorContainer) {
-        // Position below search arrow (approximate)
-        const navRect = navigatorContainer.getBoundingClientRect();
-        gpsMeterEl.style.top = (navRect.bottom + 10) + 'px';
-        gpsMeterEl.style.left = (navRect.right - 150) + 'px';
-        
-        makeDraggable(gpsMeterEl);
-    }
+    if (gpsMeterEl) makeDraggable(gpsMeterEl);
 });
 
 function hideDangerAlert() {
@@ -1439,6 +1434,38 @@ window.setWeather = function(idx) {
     simulateWeather();
     // Auto close group after selection
     document.getElementById('weatherSimGroup').classList.remove('active');
+};
+
+// Positive Behavior Reward Simulator
+window.triggerReward = function(actionName, points) {
+    const userName = (userProfile && userProfile.name) ? userProfile.name : 'صديقي';
+
+    const audio = document.getElementById('alertSound');
+    if (audio) {
+        audio.volume = 0.3;
+        audio.play().catch(() => {});
+    }
+
+    // Green flash effect
+    document.body.classList.add('reward-active');
+    setTimeout(() => document.body.classList.remove('reward-active'), 1500);
+
+    showAiMessage(`Aero-Engine يرصد سلوكاً إيجابياً...`, 2000);
+
+    setTimeout(() => {
+        const finalMsg = `أحسنت يا ${userName}! (${actionName}) — تم منحك <b>+${points} PT</b> 🌱`;
+        if (window.applyReward) window.applyReward(points, actionName);
+        showAiMessage(finalMsg, 10000);
+    }, 2000);
+
+    const bellDot = document.getElementById('bellDot');
+    if (bellDot) bellDot.style.display = 'block';
+
+    document.getElementById('rewardSimGroup').classList.remove('active');
+
+    if (window.analyzeEventWithAI) {
+        window.analyzeEventWithAI(`سلوك إيجابي: ${actionName}`);
+    }
 };
 
 // Close sim groups when clicking outside
