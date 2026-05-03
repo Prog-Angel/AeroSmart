@@ -170,6 +170,9 @@ def process_aerosight_data(conn, data_json, district_name="حي الصحابة")
         return False
 
 if __name__ == "__main__":
-    db_conn = initialize_database()
+    # Ensure we use the root database
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    db_path = os.path.join(base_dir, "district_pulse.db")
+    db_conn = initialize_database(db_name=db_path)
     perform_scan(db_conn)
     db_conn.close()

@@ -5,7 +5,7 @@ import math
 
 def connect_db():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    db_path = os.path.join(base_dir, "AeroSentinel", "district_pulse.db")
+    db_path = os.path.join(base_dir, "district_pulse.db")
     return sqlite3.connect(db_path)
 
 def initialize_system_state(cursor):

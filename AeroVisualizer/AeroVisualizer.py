@@ -10,7 +10,7 @@ import AeroNavigator.AeroNavigator as AeroNavigator
 
 def get_latest_data():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    db_path = os.path.join(base_dir, "AeroSentinel", "district_pulse.db")
+    db_path = os.path.join(base_dir, "district_pulse.db")
     
     active_district = AeroNavigator.get_active_district()
     
@@ -110,7 +110,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 sys.path.append(base_dir)
                 import AeroSentinel.AeroSentinel as AeroSentinel
                 active_district = AeroNavigator.get_active_district()
-                db_path = os.path.join(base_dir, "AeroSentinel", "district_pulse.db")
+                db_path = os.path.join(base_dir, "district_pulse.db")
                 conn = AeroSentinel.initialize_database(db_name=db_path)
                 AeroSentinel.process_aerosight_data(conn, {"points": 20, "message": "مكافأة المسار الأخضر الآمن المباشرة 🌿"}, district_name=active_district)
                 conn.close()
@@ -133,7 +133,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             import AeroSentinel.AeroSentinel as AeroSentinel
             
             active_district = AeroNavigator.get_active_district()
-            db_path = os.path.join(base_dir, "AeroSentinel", "district_pulse.db")
+            db_path = os.path.join(base_dir, "district_pulse.db")
             conn = AeroSentinel.initialize_database(db_name=db_path)
             
             # Penalize (Negative points)
