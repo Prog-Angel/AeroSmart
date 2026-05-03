@@ -1,4 +1,4 @@
 .env
-.jpg
-.png
+*.jpg
+*.png
 AeroSight/latest_frame.jpg
